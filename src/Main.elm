@@ -83,12 +83,12 @@ view model =
         [ div []
             [ text "Summa eget kapital:"
             , input [ onInput UpdateEgetKapital, type_ "number" ] [ text model.eget_kapital ]
-            , text "kr"
+            , text " kr"
             ]
         , div []
             [ text "Långfristiga skulder:"
             , input [ onInput UpdateLångfristigaSkulder, type_ "number" ] []
-            , text "kr"
+            , text " kr"
             ]
         , div []
             [ text "Andelstal i %:"
@@ -103,12 +103,17 @@ view model =
         , div []
             [ text "Månadsavgift:"
             , input [ onInput UpdateMånadsavgift, type_ "number" ] []
-            , text "kr/mån"
+            , text " kr/mån"
             ]
         , div []
             [ text "Belåningsgrad: "
             , text (belåningsgrad model)
             , text "%"
+            ]
+        , div []
+            [ text "Lägenhetens del av skulden per kvadratmeter: "
+            , text (skuldandel model)
+            , text " kr"
             ]
         ]
 
@@ -129,6 +134,21 @@ belåningsgrad model =
         ""
     else
         twoDecimal ((skulder / summa) * 100)
+
+
+skuldandel : Model -> String
+skuldandel model =
+    let
+        skulder =
+            toNumberIfPresentOrZero model.långfristiga_skulder
+
+        andel =
+            toNumberIfPresentOrZero model.andelstal
+    in
+    if skulder == 0 || andel == 0 then
+        ""
+    else
+        twoDecimal (skulder * andel / 100)
 
 
 toNumberIfPresentOrZero : String -> Float
