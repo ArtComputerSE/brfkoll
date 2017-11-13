@@ -111,8 +111,13 @@ view model =
             , text "%"
             ]
         , div []
-            [ text "Lägenhetens del av skulden per kvadratmeter: "
+            [ text "Lägenhetens del av skulden: "
             , text (skuldandel model)
+            , text " kr"
+            ]
+        , div []
+            [ text "Lägenhetens del av skulden per kvadratmeter: "
+            , text (skuldandel_per_kvm model)
             , text " kr"
             ]
         ]
@@ -149,6 +154,26 @@ skuldandel model =
         ""
     else
         twoDecimal (skulder * andel / 100)
+
+
+skuldandel_per_kvm : Model -> String
+skuldandel_per_kvm model =
+    let
+        skulder =
+            toNumberIfPresentOrZero model.långfristiga_skulder
+
+        andel =
+            toNumberIfPresentOrZero model.andelstal
+
+        yta =
+            toNumberIfPresentOrZero model.lägenhetsyta
+    in
+    if skulder == 0 || andel == 0 then
+        ""
+    else if yta == 0 then
+        ""
+    else
+        twoDecimal ((skulder * andel / 100) / yta)
 
 
 toNumberIfPresentOrZero : String -> Float
