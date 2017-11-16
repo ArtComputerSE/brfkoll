@@ -2,7 +2,7 @@ module Main exposing (..)
 
 import FormatNumber exposing (format)
 import Html exposing (Html, div, input, label, text)
-import Html.Attributes exposing (type_)
+import Html.Attributes exposing (class, type_)
 import Html.Events exposing (onInput)
 import Navigation
 import UrlParser exposing ((</>))
@@ -162,7 +162,7 @@ routeParser =
 
 view : Model -> Html Msg
 view model =
-    div []
+    div [ class "overflow-container" ]
         [ case model.route of
             HomeRoute ->
                 viewCalculator model
