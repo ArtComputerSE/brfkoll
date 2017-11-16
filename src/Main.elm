@@ -4,10 +4,13 @@ import FormatNumber exposing (format)
 import Html exposing (Html, div, input, label, text)
 import Html.Attributes exposing (type_)
 import Html.Events exposing (onInput)
+import Navigation
+import UrlParser exposing ((</>))
 
 
+main : Program Never Model Msg
 main =
-    Html.program
+    Navigation.program urlParser
         { init = init
         , view = view
         , update = update
@@ -20,7 +23,8 @@ main =
 
 
 type alias Model =
-    { eget_kapital : String
+    { route : Route
+    , eget_kapital : String
     , långfristiga_skulder : String
     , andelstal : String
     , lägenhetsyta : String
@@ -28,8 +32,10 @@ type alias Model =
     }
 
 
-initialModel =
-    { eget_kapital = "0"
+initialModel : Route -> Model
+initialModel route =
+    { route = route
+    , eget_kapital = "0"
     , långfristiga_skulder = "0"
     , andelstal = "0"
     , lägenhetsyta = "0"
@@ -37,9 +43,35 @@ initialModel =
     }
 
 
-init : ( Model, Cmd Msg )
-init =
-    ( initialModel, Cmd.none )
+init : Navigation.Location -> ( Model, Cmd Msg )
+init location =
+    let
+        l =
+            Debug.log "init location" location
+
+        route =
+            case UrlParser.parsePath routeParser location of
+                Nothing ->
+                    HomeRoute
+
+                Just route ->
+                    route
+    in
+    ( initialModel route, Cmd.none )
+
+
+
+-- ROUTES
+
+
+type alias CodedBrfRecord =
+    String
+
+
+type Route
+    = HomeRoute
+    | AddBrfRoute CodedBrfRecord
+    | NotFound
 
 
 
@@ -52,6 +84,7 @@ type Msg
     | UpdateAndelstal String
     | UpdateLägenhetsyta String
     | UpdateMånadsavgift String
+    | FollowRoute Route
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -72,6 +105,56 @@ update msg model =
         UpdateMånadsavgift ny_månadsavgift ->
             ( { model | månadsavgift = ny_månadsavgift }, Cmd.none )
 
+        FollowRoute route ->
+            ( { model | route = route }, Cmd.none )
+
+
+
+-- PARSING
+
+
+urlParser : Navigation.Location -> Msg
+urlParser location =
+    let
+        l =
+            Debug.log "location" location
+
+        parsed =
+            UrlParser.parsePath routeParser location
+    in
+    case Debug.log "parsed" parsed of
+        Nothing ->
+            FollowRoute NotFound
+
+        Just route ->
+            FollowRoute route
+
+
+postsParser : UrlParser.Parser a a
+postsParser =
+    UrlParser.s "posts"
+
+
+addBrfParser : UrlParser.Parser (CodedBrfRecord -> a) a
+addBrfParser =
+    UrlParser.s "add" </> UrlParser.string
+
+
+homeParser : UrlParser.Parser a a
+homeParser =
+    UrlParser.oneOf
+        [ UrlParser.s "index.html"
+        , UrlParser.s ""
+        ]
+
+
+routeParser : UrlParser.Parser (Route -> a) a
+routeParser =
+    UrlParser.oneOf
+        [ UrlParser.map AddBrfRoute addBrfParser
+        , UrlParser.map HomeRoute homeParser
+        ]
+
 
 
 -- VIEW
@@ -79,6 +162,21 @@ update msg model =
 
 view : Model -> Html Msg
 view model =
+    div []
+        [ case model.route of
+            HomeRoute ->
+                viewCalculator model
+
+            AddBrfRoute s ->
+                notImplementedYetPage model s
+
+            NotFound ->
+                notFoundPage model
+        ]
+
+
+viewCalculator : Model -> Html Msg
+viewCalculator model =
     div []
         [ div []
             [ text "Summa eget kapital:"
@@ -121,6 +219,20 @@ view model =
             , text " kr"
             ]
         ]
+
+
+notImplementedYetPage : Model -> String -> Html Msg
+notImplementedYetPage model code =
+    div [] [ text ("This has not been implemented yet. Code: " ++ code) ]
+
+
+notFoundPage : Model -> Html Msg
+notFoundPage model =
+    div [] [ text "Not found" ]
+
+
+
+-- Calculations
 
 
 belåningsgrad : Model -> String
