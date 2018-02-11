@@ -1,4 +1,4 @@
-module Main exposing (..)
+port module Main exposing (..)
 
 import FormatNumber exposing (format)
 import Html exposing (Html, div, input, label, table, tbody, td, text, tr)
@@ -8,9 +8,9 @@ import Navigation
 import UrlParser exposing ((</>))
 
 
-main : Program Never Model Msg
+main : Program (Maybe String) Model Msg
 main =
-    Navigation.program urlParser
+    Navigation.programWithFlags urlParser
         { init = init
         , view = view
         , update = update
@@ -43,8 +43,12 @@ initialModel route =
     }
 
 
-init : Navigation.Location -> ( Model, Cmd Msg )
-init location =
+
+-- TODO: the string is from local storage
+
+
+init : Maybe String -> Navigation.Location -> ( Model, Cmd Msg )
+init maybeString location =
     let
         l =
             Debug.log "init location" location
