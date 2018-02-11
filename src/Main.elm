@@ -24,7 +24,12 @@ main =
 
 type alias Model =
     { route : Route
-    , eget_kapital : String
+    , parameters : Parameters
+    }
+
+
+type alias Parameters =
+    { eget_kapital : String
     , långfristiga_skulder : String
     , andelstal : String
     , lägenhetsyta : String
@@ -35,11 +40,13 @@ type alias Model =
 initialModel : Route -> Model
 initialModel route =
     { route = route
-    , eget_kapital = "0"
-    , långfristiga_skulder = "0"
-    , andelstal = "0"
-    , lägenhetsyta = "0"
-    , månadsavgift = "0"
+    , parameters =
+        { eget_kapital = "0"
+        , långfristiga_skulder = "0"
+        , andelstal = "0"
+        , lägenhetsyta = "0"
+        , månadsavgift = "0"
+        }
     }
 
 
@@ -93,21 +100,25 @@ type Msg
 
 update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
+    let
+        params =
+            model.parameters
+    in
     case msg of
         UpdateEgetKapital nytt_eget_kapital ->
-            ( { model | eget_kapital = nytt_eget_kapital }, Cmd.none )
+            ( { model | parameters = { params | eget_kapital = nytt_eget_kapital } }, Cmd.none )
 
         UpdateLångfristigaSkulder nytt_långfristiga_skulder ->
-            ( { model | långfristiga_skulder = nytt_långfristiga_skulder }, Cmd.none )
+            ( { model | parameters = { params | långfristiga_skulder = nytt_långfristiga_skulder } }, Cmd.none )
 
         UpdateAndelstal nytt_andelstal ->
-            ( { model | andelstal = nytt_andelstal }, Cmd.none )
+            ( { model | parameters = { params | andelstal = nytt_andelstal } }, Cmd.none )
 
         UpdateLägenhetsyta ny_lägenhetsyta ->
-            ( { model | lägenhetsyta = ny_lägenhetsyta }, Cmd.none )
+            ( { model | parameters = { params | lägenhetsyta = ny_lägenhetsyta } }, Cmd.none )
 
         UpdateMånadsavgift ny_månadsavgift ->
-            ( { model | månadsavgift = ny_månadsavgift }, Cmd.none )
+            ( { model | parameters = { params | månadsavgift = ny_månadsavgift } }, Cmd.none )
 
         FollowRoute route ->
             ( { model | route = route }, Cmd.none )
@@ -182,11 +193,11 @@ view model =
 viewCalculator : Model -> Html Msg
 viewCalculator model =
     table []
-        [ inputRow "Summa eget kapital:" UpdateEgetKapital model.eget_kapital "kr"
-        , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.långfristiga_skulder "kr"
-        , inputRow "Andelstal i %:" UpdateAndelstal model.andelstal "%"
-        , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.lägenhetsyta "kvm"
-        , inputRow "Månadsavgift:" UpdateMånadsavgift model.månadsavgift " kr/mån"
+        [ inputRow "Summa eget kapital:" UpdateEgetKapital model.parameters.eget_kapital "kr"
+        , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.parameters.långfristiga_skulder "kr"
+        , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
+        , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.parameters.lägenhetsyta "kvm"
+        , inputRow "Månadsavgift:" UpdateMånadsavgift model.parameters.månadsavgift " kr/mån"
         , resultRow "Belåningsgrad: " (belåningsgrad model) "%"
         , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
         , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) " kr"
@@ -227,10 +238,10 @@ belåningsgrad : Model -> String
 belåningsgrad model =
     let
         kapital =
-            toNumberIfPresentOrZero model.eget_kapital
+            toNumberIfPresentOrZero model.parameters.eget_kapital
 
         skulder =
-            toNumberIfPresentOrZero model.långfristiga_skulder
+            toNumberIfPresentOrZero model.parameters.långfristiga_skulder
 
         summa =
             kapital + skulder
@@ -245,10 +256,10 @@ skuldandel : Model -> String
 skuldandel model =
     let
         skulder =
-            toNumberIfPresentOrZero model.långfristiga_skulder
+            toNumberIfPresentOrZero model.parameters.långfristiga_skulder
 
         andel =
-            toNumberIfPresentOrZero model.andelstal
+            toNumberIfPresentOrZero model.parameters.andelstal
     in
     if skulder == 0 || andel == 0 then
         ""
@@ -260,13 +271,13 @@ skuldandel_per_kvm : Model -> String
 skuldandel_per_kvm model =
     let
         skulder =
-            toNumberIfPresentOrZero model.långfristiga_skulder
+            toNumberIfPresentOrZero model.parameters.långfristiga_skulder
 
         andel =
-            toNumberIfPresentOrZero model.andelstal
+            toNumberIfPresentOrZero model.parameters.andelstal
 
         yta =
-            toNumberIfPresentOrZero model.lägenhetsyta
+            toNumberIfPresentOrZero model.parameters.lägenhetsyta
     in
     if skulder == 0 || andel == 0 then
         ""
