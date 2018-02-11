@@ -1,7 +1,7 @@
 module Main exposing (..)
 
 import FormatNumber exposing (format)
-import Html exposing (Html, div, input, label, text)
+import Html exposing (Html, div, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (class, type_)
 import Html.Events exposing (onInput)
 import Navigation
@@ -177,47 +177,31 @@ view model =
 
 viewCalculator : Model -> Html Msg
 viewCalculator model =
-    div []
-        [ div []
-            [ text "Summa eget kapital:"
-            , input [ onInput UpdateEgetKapital, type_ "number" ] [ text model.eget_kapital ]
-            , text " kr"
-            ]
-        , div []
-            [ text "Långfristiga skulder:"
-            , input [ onInput UpdateLångfristigaSkulder, type_ "number" ] []
-            , text " kr"
-            ]
-        , div []
-            [ text "Andelstal i %:"
-            , input [ onInput UpdateAndelstal, type_ "number" ] []
-            , text "%"
-            ]
-        , div []
-            [ text "Lägenhetsyta:"
-            , input [ onInput UpdateLägenhetsyta, type_ "number" ] []
-            , text "kvm"
-            ]
-        , div []
-            [ text "Månadsavgift:"
-            , input [ onInput UpdateMånadsavgift, type_ "number" ] []
-            , text " kr/mån"
-            ]
-        , div []
-            [ text "Belåningsgrad: "
-            , text (belåningsgrad model)
-            , text "%"
-            ]
-        , div []
-            [ text "Lägenhetens del av skulden: "
-            , text (skuldandel model)
-            , text " kr"
-            ]
-        , div []
-            [ text "Lägenhetens del av skulden per kvadratmeter: "
-            , text (skuldandel_per_kvm model)
-            , text " kr"
-            ]
+    table []
+        [ inputRow "Summa eget kapital:" UpdateEgetKapital model.eget_kapital "kr"
+        , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.långfristiga_skulder "kr"
+        , inputRow "Andelstal i %:" UpdateAndelstal model.andelstal "%"
+        , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.lägenhetsyta "kvm"
+        , inputRow "Månadsavgift:" UpdateMånadsavgift model.månadsavgift " kr/mån"
+        , resultRow "Belåningsgrad: " (belåningsgrad model) "%"
+        , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
+        , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) " kr"
+        ]
+
+
+inputRow label inputMessage currentValue suffix =
+    tr []
+        [ td [ class "col-left" ] [ text label ]
+        , td [ class "col-center" ] [ input [ onInput inputMessage, type_ "number" ] [ text currentValue ] ]
+        , td [ class "col-right" ] [ text suffix ]
+        ]
+
+
+resultRow label result suffix =
+    tr []
+        [ td [ class "col-left" ] [ text label ]
+        , td [ class "col-center" ] [ text result ]
+        , td [ class "col-right" ] [ text suffix ]
         ]
 
 
