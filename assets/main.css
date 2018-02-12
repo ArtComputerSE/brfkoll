@@ -1,6 +1,7 @@
 
 .col-left {
     text-align: left;
+    max-width: 200px;
 }
 
 .col-center {
