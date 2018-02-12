@@ -5,6 +5,7 @@ import Html exposing (Html, div, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onInput)
 import Navigation
+import Regex
 import UrlParser exposing ((</>))
 
 
@@ -366,7 +367,12 @@ skuldandel_per_kvm model =
 
 toNumberIfPresentOrZero : String -> Float
 toNumberIfPresentOrZero string =
-    Result.withDefault 0 (String.toFloat string)
+    Result.withDefault 0 (String.toFloat (replaceDecimalSeparator string))
+
+
+replaceDecimalSeparator : String -> String
+replaceDecimalSeparator string =
+    Regex.replace Regex.All (Regex.regex ",") (\_ -> ".") string
 
 
 twoDecimal : Float -> String
