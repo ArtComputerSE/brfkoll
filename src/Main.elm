@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import FormatNumber exposing (format)
 import Html exposing (Html, div, input, label, table, tbody, td, text, tr)
-import Html.Attributes exposing (class, type_)
+import Html.Attributes exposing (class, type_, value)
 import Html.Events exposing (onInput)
 import Navigation
 import UrlParser exposing ((</>))
@@ -13,7 +13,7 @@ main =
     Navigation.programWithFlags urlParser
         { init = init
         , view = view
-        , update = update
+        , update = updateWithStorage
         , subscriptions = subscriptions
         }
 
@@ -47,21 +47,25 @@ type alias Parameters =
     }
 
 
-initialModel : Route -> Model
-initialModel route =
-    { route = route
-    , parameters =
-        { eget_kapital = "0"
-        , långfristiga_skulder = "0"
-        , andelstal = "0"
-        , lägenhetsyta = "0"
-        , månadsavgift = "0"
-        }
+defaultParameters : Parameters
+defaultParameters =
+    { eget_kapital = "0"
+    , långfristiga_skulder = "0"
+    , andelstal = "0"
+    , lägenhetsyta = "0"
+    , månadsavgift = "0"
     }
 
 
-
--- TODO: the string is from local storage
+initialModel : Route -> Parameters -> Model
+initialModel route parameters =
+    let
+        p =
+            Debug.log "Parameters " (toString parameters)
+    in
+    { route = route
+    , parameters = parameters
+    }
 
 
 init : Maybe String -> Navigation.Location -> ( Model, Cmd Msg )
@@ -78,7 +82,54 @@ init maybeString location =
                 Just route ->
                     route
     in
-    ( initialModel route, Cmd.none )
+    case Debug.log "Maybe stored string" maybeString of
+        Just something ->
+            ( initialModel route (parametersFromString something), Cmd.none )
+
+        Nothing ->
+            ( initialModel route defaultParameters, Cmd.none )
+
+
+parametersFromString : String -> Parameters
+parametersFromString string =
+    let
+        list =
+            Debug.log "list" (String.split ":" string)
+    in
+    Parameters (pick 1 list) (pick 2 list) (pick 3 list) (pick 4 list) (pick 5 list)
+
+
+pick : Int -> List String -> String
+pick n list =
+    if n == 1 then
+        case List.head list of
+            Just head ->
+                head
+
+            Nothing ->
+                ""
+    else
+        case List.tail list of
+            Just tail ->
+                pick (n - 1) tail
+
+            Nothing ->
+                ""
+
+
+parametersToString : Parameters -> String
+parametersToString parameters =
+    let
+        p =
+            Debug.log "Parameters to String" parameters
+    in
+    String.join ":"
+        [ parameters.eget_kapital
+        , parameters.långfristiga_skulder
+        , parameters.andelstal
+        , parameters.lägenhetsyta
+        , parameters.månadsavgift
+        ]
 
 
 
@@ -106,6 +157,20 @@ type Msg
     | UpdateLägenhetsyta String
     | UpdateMånadsavgift String
     | FollowRoute Route
+
+
+updateWithStorage : Msg -> Model -> ( Model, Cmd Msg )
+updateWithStorage msg model =
+    let
+        ( newModel, commands ) =
+            update msg model
+
+        newParameters =
+            newModel.parameters
+    in
+    ( newModel
+    , Cmd.batch [ commands, setStorage (parametersToString newParameters) ]
+    )
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
@@ -217,7 +282,9 @@ viewCalculator model =
 inputRow label inputMessage currentValue suffix =
     tr []
         [ td [ class "col-left" ] [ text label ]
-        , td [ class "col-center" ] [ input [ onInput inputMessage, type_ "number" ] [ text currentValue ] ]
+        , td [ class "col-center" ]
+            [ input [ onInput inputMessage, value currentValue ] []
+            ]
         , td [ class "col-right" ] [ text suffix ]
         ]
 
