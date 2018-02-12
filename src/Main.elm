@@ -19,6 +19,16 @@ main =
 
 
 
+-- Ports
+
+
+port setStorage : String -> Cmd msg
+
+
+port removeStorage : String -> Cmd msg
+
+
+
 -- MODEL
 
 
