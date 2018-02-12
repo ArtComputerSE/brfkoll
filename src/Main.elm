@@ -1,7 +1,7 @@
 port module Main exposing (..)
 
 import FormatNumber exposing (format)
-import Html exposing (Html, div, input, label, table, tbody, td, text, tr)
+import Html exposing (Html, div, h1, input, label, table, tbody, td, text, tr)
 import Html.Attributes exposing (class, size, value)
 import Html.Events exposing (onInput)
 import Navigation
@@ -268,15 +268,25 @@ view model =
 
 viewCalculator : Model -> Html Msg
 viewCalculator model =
-    table []
-        [ inputRow "Summa eget kapital:" UpdateEgetKapital model.parameters.eget_kapital "kr"
-        , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.parameters.långfristiga_skulder "kr"
-        , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
-        , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.parameters.lägenhetsyta "kvm"
-        , inputRow "Månadsavgift:" UpdateMånadsavgift model.parameters.månadsavgift " kr/mån"
-        , resultRow "Belåningsgrad: " (belåningsgrad model) "%"
-        , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
-        , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) " kr"
+    div []
+        [ table []
+            [ inputRow "Summa eget kapital:" UpdateEgetKapital model.parameters.eget_kapital "kr"
+            , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.parameters.långfristiga_skulder "kr"
+            , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
+            , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.parameters.lägenhetsyta "kvm"
+            , inputRow "Månadsavgift:" UpdateMånadsavgift model.parameters.månadsavgift "kr/mån"
+            , resultRow "Fastighetens belåningsgrad: " (belåningsgrad model) "%"
+            , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
+            , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) "kr"
+            , resultRow "Föreningens kostnadsökning vid 1% räntehöjning: " (brf_cost_increase model) "kr/mån"
+            ]
+        , h1 [] [ text "Utvärdering" ]
+        , table []
+            [ resultRow "Lägenhetens kostnadsökning vid en räntehöjning om 1%: " (lgh_cost_increase model) "kr/mån"
+            , resultRow "Belåningsgrad:" (eval_belåningsgrad (belåningsgrad model)) ""
+            , resultRow "Lägenhetens andel av skulden, per kvm:" (eval_skuldandel_per_kvm (skuldandel_per_kvm_calc model)) ""
+            , resultRow "Årsavgift per kvm:" (eval_avgift_per_kvm model) ""
+            ]
         ]
 
 
@@ -286,7 +296,7 @@ inputRow label inputMessage currentValue suffix =
         , td [ class "col-center" ]
             [ input [ onInput inputMessage, value currentValue, size 10 ] []
             ]
-        , td [] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
+        , td [ class "col-center" ] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
         , td [ class "col-right" ] [ text suffix ]
         ]
 
@@ -294,8 +304,8 @@ inputRow label inputMessage currentValue suffix =
 resultRow label result suffix =
     tr []
         [ td [ class "col-left" ] [ text label ]
-        , td [ class "col-center" ] []
-        , td [ class "col-right" ] [ text result ]
+        , td [] []
+        , td [ class "col-center" ] [ text result ]
         , td [ class "col-right" ] [ text suffix ]
         ]
 
@@ -349,6 +359,11 @@ skuldandel model =
 
 skuldandel_per_kvm : Model -> String
 skuldandel_per_kvm model =
+    twoDecimal (skuldandel_per_kvm_calc model)
+
+
+skuldandel_per_kvm_calc : Model -> Float
+skuldandel_per_kvm_calc model =
     let
         skulder =
             toNumberIfPresentOrZero model.parameters.långfristiga_skulder
@@ -360,11 +375,84 @@ skuldandel_per_kvm model =
             toNumberIfPresentOrZero model.parameters.lägenhetsyta
     in
     if skulder == 0 || andel == 0 then
-        ""
+        0.0
     else if yta == 0 then
-        ""
+        0.0
     else
-        twoDecimal ((skulder * andel / 100) / yta)
+        (skulder * andel / 100) / yta
+
+
+brf_cost_increase : Model -> String
+brf_cost_increase model =
+    twoDecimal (brf_cost_increase_calc model)
+
+
+brf_cost_increase_calc : Model -> Float
+brf_cost_increase_calc model =
+    toNumberIfPresentOrZero model.parameters.långfristiga_skulder * 0.01 / 12
+
+
+lgh_cost_increase : Model -> String
+lgh_cost_increase model =
+    twoDecimal (toNumberIfPresentOrZero model.parameters.andelstal * 0.01 * brf_cost_increase_calc model)
+
+
+
+-- Evaluations
+
+
+eval_belåningsgrad : String -> String
+eval_belåningsgrad fastighetBelåningString =
+    let
+        fastighetsBelåningsgrad =
+            toNumberIfPresentOrZero fastighetBelåningString
+    in
+    if fastighetsBelåningsgrad <= 25 then
+        "OK"
+    else if fastighetsBelåningsgrad <= 50 then
+        "Gränsfall"
+    else
+        "Se upp!"
+
+
+eval_skuldandel_per_kvm : Float -> String
+eval_skuldandel_per_kvm spkvm =
+    if spkvm >= 9000 then
+        "Hög"
+    else if spkvm >= 6000 then
+        "Måttlig till hög"
+    else if spkvm > 3000 then
+        "Måttlig till låg"
+    else
+        "Låg"
+
+
+eval_avgift_per_kvm model =
+    let
+        monthly =
+            toNumberIfPresentOrZero model.parameters.månadsavgift
+
+        yta =
+            toNumberIfPresentOrZero model.parameters.lägenhetsyta
+
+        avgift =
+            if yta > 0 then
+                monthly * 12 / yta
+            else
+                0
+    in
+    if avgift >= 900 then
+        "Hög"
+    else if avgift >= 650 then
+        "Måttlig till hög"
+    else if avgift > 300 then
+        "Måttlig till låg"
+    else
+        "Låg"
+
+
+
+-- String conversions
 
 
 toNumberIfPresentOrZero : String -> Float
