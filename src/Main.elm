@@ -2,7 +2,7 @@ port module Main exposing (..)
 
 import FormatNumber exposing (format)
 import Html exposing (Html, div, h1, input, label, p, table, tbody, td, text, tr)
-import Html.Attributes exposing (class, size, type_, value)
+import Html.Attributes exposing (class, size, step, type_, value)
 import Html.Events exposing (onInput)
 import Navigation
 import Regex
@@ -294,7 +294,7 @@ inputRow label inputMessage currentValue suffix =
     tr []
         [ td [ class "col-left" ] [ p [] [ text label ] ]
         , td [ class "col-center" ]
-            [ input [ onInput inputMessage, value currentValue, size 10, type_ "number" ] []
+            [ input [ onInput inputMessage, value currentValue, size 10, type_ "number", step "any" ] []
             ]
         , td [ class "col-center" ] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
         , td [ class "col-right" ] [ text suffix ]
