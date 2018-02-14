@@ -1,7 +1,13 @@
+body{
+    font-size: 15pt;
+}
+
+input {
+    font-size: 15pt;
+}
 
 .col-left {
-    text-align: left;
-    max-width: 200px;
+    text-align: right;
 }
 
 .col-center {

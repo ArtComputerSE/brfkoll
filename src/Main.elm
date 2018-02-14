@@ -1,8 +1,8 @@
 port module Main exposing (..)
 
 import FormatNumber exposing (format)
-import Html exposing (Html, div, h1, input, label, table, tbody, td, text, tr)
-import Html.Attributes exposing (class, size, value)
+import Html exposing (Html, div, h1, input, label, p, table, tbody, td, text, tr)
+import Html.Attributes exposing (class, size, type_, value)
 import Html.Events exposing (onInput)
 import Navigation
 import Regex
@@ -269,7 +269,7 @@ view model =
 viewCalculator : Model -> Html Msg
 viewCalculator model =
     div []
-        [ table []
+        [ table [ class "overflow-container" ]
             [ inputRow "Summa eget kapital:" UpdateEgetKapital model.parameters.eget_kapital "kr"
             , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.parameters.långfristiga_skulder "kr"
             , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
@@ -292,9 +292,9 @@ viewCalculator model =
 
 inputRow label inputMessage currentValue suffix =
     tr []
-        [ td [ class "col-left" ] [ text label ]
+        [ td [ class "col-left" ] [ p [] [ text label ] ]
         , td [ class "col-center" ]
-            [ input [ onInput inputMessage, value currentValue, size 10 ] []
+            [ input [ onInput inputMessage, value currentValue, size 10, type_ "number" ] []
             ]
         , td [ class "col-center" ] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
         , td [ class "col-right" ] [ text suffix ]
