@@ -6,12 +6,22 @@ input {
     font-size: 15pt;
 }
 
+.row {
+    display: flex;
+}
+
+.cell {
+    flex: 1;
+}
+
 .col-left {
     text-align: right;
 }
 
 .col-center {
     text-align: right;
+    flex: 1;
+    padding-right: 0.2em;
 }
 
 .col-right {

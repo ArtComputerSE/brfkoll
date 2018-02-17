@@ -270,7 +270,7 @@ view model =
 viewCalculator : Model -> Html Msg
 viewCalculator model =
     div []
-        [ table [ class "overflow-container" ]
+        [ div []
             [ inputRow "Summa eget kapital:" UpdateEgetKapital model.parameters.eget_kapital "kr"
             , inputRow "Långfristiga skulder:" UpdateLångfristigaSkulder model.parameters.långfristiga_skulder "kr"
             , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
@@ -278,14 +278,14 @@ viewCalculator model =
             , inputRow "Månadsavgift:" UpdateMånadsavgift model.parameters.månadsavgift "kr/mån"
             ]
         , h1 [] [ text "Analys" ]
-        , table []
+        , div []
             [ resultRow "Fastighetens belåningsgrad: " (belåningsgrad model) "%"
             , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
             , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) "kr"
             , resultRow "Föreningens kostnadsökning vid 1% räntehöjning: " (brf_cost_increase model) "kr/mån"
             ]
         , h1 [] [ text "Utvärdering" ]
-        , table []
+        , div []
             [ resultRow "Lägenhetens kostnadsökning vid en räntehöjning om 1%: " (lgh_cost_increase model) "kr/mån"
             , resultRow "Belåningsgrad:" (eval_belåningsgrad (belåningsgrad model)) ""
             , resultRow "Lägenhetens andel av skulden, per kvm:" (eval_skuldandel_per_kvm (skuldandel_per_kvm_calc model)) ""
@@ -295,12 +295,12 @@ viewCalculator model =
 
 
 inputRow label inputMessage currentValue suffix =
-    tr []
-        [ td [ class "col-left" ] [ p [] [ text label ] ]
-        , td [ class "col-center" ]
+    div [ class "row" ]
+        [ div [ class "cell" ] [ text label ]
+        , div [ class "col-center" ]
             [ input [ onMyBlur inputMessage, value (twoDecimal (toNumberIfPresentOrZero currentValue)), size 15, step "any" ] []
             ]
-        , td [ class "col-right" ] [ text suffix ]
+        , div [ class "cell" ] [ text suffix ]
         ]
 
 
@@ -315,11 +315,10 @@ targetValue =
 
 
 resultRow label result suffix =
-    tr []
-        [ td [ class "col-left" ] [ text label ]
-        , td [] []
-        , td [ class "col-center" ] [ text result ]
-        , td [ class "col-right" ] [ text suffix ]
+    div [ class "row" ]
+        [ div [ class "cell" ] [ text label ]
+        , div [ class "col-center" ] [ text result ]
+        , div [ class "cell" ] [ text suffix ]
         ]
 
 
