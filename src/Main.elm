@@ -276,7 +276,10 @@ viewCalculator model =
             , inputRow "Andelstal i %:" UpdateAndelstal model.parameters.andelstal "%"
             , inputRow "Lägenhetsyta:" UpdateLägenhetsyta model.parameters.lägenhetsyta "kvm"
             , inputRow "Månadsavgift:" UpdateMånadsavgift model.parameters.månadsavgift "kr/mån"
-            , resultRow "Fastighetens belåningsgrad: " (belåningsgrad model) "%"
+            ]
+        , h1 [] [ text "Analys" ]
+        , table []
+            [ resultRow "Fastighetens belåningsgrad: " (belåningsgrad model) "%"
             , resultRow "Lägenhetens del av skulden: " (skuldandel model) " kr"
             , resultRow "Lägenhetens del av skulden per kvadratmeter: " (skuldandel_per_kvm model) "kr"
             , resultRow "Föreningens kostnadsökning vid 1% räntehöjning: " (brf_cost_increase model) "kr/mån"
@@ -295,9 +298,8 @@ inputRow label inputMessage currentValue suffix =
     tr []
         [ td [ class "col-left" ] [ p [] [ text label ] ]
         , td [ class "col-center" ]
-            [ input [ onMyBlur inputMessage, value (twoDecimal (toNumberIfPresentOrZero currentValue)), size 20, step "any" ] []
+            [ input [ onMyBlur inputMessage, value (twoDecimal (toNumberIfPresentOrZero currentValue)), size 15, step "any" ] []
             ]
-        , td [ class "col-center" ] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
         , td [ class "col-right" ] [ text suffix ]
         ]
 
