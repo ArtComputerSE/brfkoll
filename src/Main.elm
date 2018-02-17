@@ -3,7 +3,8 @@ port module Main exposing (..)
 import FormatNumber exposing (format)
 import Html exposing (Html, div, h1, input, label, p, table, tbody, td, text, tr)
 import Html.Attributes exposing (class, size, step, type_, value)
-import Html.Events exposing (onInput)
+import Html.Events exposing (on, onInput)
+import Json.Decode
 import Navigation
 import Regex
 import UrlParser exposing ((</>))
@@ -294,11 +295,21 @@ inputRow label inputMessage currentValue suffix =
     tr []
         [ td [ class "col-left" ] [ p [] [ text label ] ]
         , td [ class "col-center" ]
-            [ input [ onInput inputMessage, value currentValue, size 10, type_ "number", step "any" ] []
+            [ input [ onMyBlur inputMessage, value (twoDecimal (toNumberIfPresentOrZero currentValue)), size 20, step "any" ] []
             ]
         , td [ class "col-center" ] [ text (twoDecimal (toNumberIfPresentOrZero currentValue)) ]
         , td [ class "col-right" ] [ text suffix ]
         ]
+
+
+onMyBlur : (String -> msg) -> Html.Attribute msg
+onMyBlur tagger =
+    on "blur" (Json.Decode.map tagger targetValue)
+
+
+targetValue : Json.Decode.Decoder String
+targetValue =
+    Json.Decode.at [ "target", "value" ] Json.Decode.string
 
 
 resultRow label result suffix =
@@ -457,12 +468,17 @@ eval_avgift_per_kvm model =
 
 toNumberIfPresentOrZero : String -> Float
 toNumberIfPresentOrZero string =
-    Result.withDefault 0 (String.toFloat (replaceDecimalSeparator string))
+    Result.withDefault 0 (String.toFloat (removeSpace (replaceDecimalSeparator string)))
 
 
 replaceDecimalSeparator : String -> String
 replaceDecimalSeparator string =
     Regex.replace Regex.All (Regex.regex ",") (\_ -> ".") string
+
+
+removeSpace : String -> String
+removeSpace string =
+    Regex.replace Regex.All (Regex.regex " ") (\_ -> "") string
 
 
 twoDecimal : Float -> String
