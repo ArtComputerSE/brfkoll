@@ -420,23 +420,23 @@ eval_belåningsgrad fastighetBelåningString =
             toNumberIfPresentOrZero fastighetBelåningString
     in
     if fastighetsBelåningsgrad <= 25 then
-        "OK"
+        "OK, mindre än 25%."
     else if fastighetsBelåningsgrad <= 50 then
-        "Gränsfall"
+        "Gränsfall, 25-50%."
     else
-        "Se upp!"
+        "Se upp! Över 50%."
 
 
 eval_skuldandel_per_kvm : Float -> String
 eval_skuldandel_per_kvm spkvm =
     if spkvm >= 9000 then
-        "Hög"
+        "Hög, över 9000 kr."
     else if spkvm >= 6000 then
-        "Måttlig till hög"
+        "Måttlig till hög, 6000 - 9000 kr."
     else if spkvm > 3000 then
-        "Måttlig till låg"
+        "Måttlig till låg, 3000 - 6000 kr."
     else
-        "Låg"
+        "Låg, under 3000 kr."
 
 
 eval_avgift_per_kvm model =
@@ -454,13 +454,13 @@ eval_avgift_per_kvm model =
                 0
     in
     if avgift >= 900 then
-        "Hög"
+        "Hög, över 900 kr"
     else if avgift >= 650 then
-        "Måttlig till hög"
+        "Måttlig till hög, 650 - 900 kr."
     else if avgift > 300 then
-        "Måttlig till låg"
+        "Måttlig till låg, 300 - 650 kr."
     else
-        "Låg"
+        "Låg, under 300 kr."
 
 
 
